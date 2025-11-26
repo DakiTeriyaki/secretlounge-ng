@@ -44,7 +44,7 @@ registered_commands = {}
 linked_network: dict = None
 
 def init(config: dict, _db, _ch):
-	global bot, db, ch, message_queue, linked_network
+	global bot, db, ch, message_queue, linked_network, enable_tripcode_toggle
 	if not config.get("bot_token") or ":" not in config["bot_token"]:
 		logging.error("No Telegram bot token specified")
 		exit(1)
@@ -64,6 +64,7 @@ def init(config: dict, _db, _ch):
 		logging.error("Wrong type for 'linked_network'")
 		exit(1)
 	message_reaction_upvote = config.get("message_reaction_upvote", True)
+	enable_tripcode_toggle = config.get("enable_tripcode_toggle", False)
 
 	types = [
 		"text", "location", "venue", "story", "animation", "audio", "photo",
@@ -78,7 +79,7 @@ def init(config: dict, _db, _ch):
 		"start", "stop", "users", "info", "motd", "toggledebug", "togglekarma",
 		"version", "source", "modhelp", "adminhelp", "modsay", "adminsay", "mod",
 		"admin", "warn", "delete", "remove", "uncooldown", "blacklist", "s", "sign",
-		"tripcode", "t", "tsign", "cleanup", "privacy"
+		"tripcode", "t", "tsign", "cleanup", "privacy", "toggletripcode"
 	]
 	for c in cmds: # maps /<c> to the function cmd_<c>
 		c = c.lower()
@@ -605,6 +606,7 @@ def cmd_privacy(ev: TMessage, arg):
 
 cmd_toggledebug = wrap_core(core.toggle_debug)
 cmd_togglekarma = wrap_core(core.toggle_karma)
+cmd_toggletripcode = wrap_core(core.toggle_tripcode)
 
 @takesArgument(optional=True)
 def cmd_tripcode(ev, arg):
@@ -741,6 +743,10 @@ def relay_inner(ev: TMessage, *, caption_text=None, signed=False, tripcode=False
 		return send_answer(ev, msid) # don't relay message, instead reply
 
 	user = db.getUser(id=ev.from_user.id)
+
+	# check tripcode toggle.
+	if enable_tripcode_toggle and user.toggleTripcode:
+		tripcode = True
 
 	# for signed msgs: check user's forward privacy status first
 	# FIXME? this is a possible bottleneck
