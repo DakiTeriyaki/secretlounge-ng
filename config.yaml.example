@@ -18,6 +18,11 @@ allow_documents: true
 # allow mods to remove message without issuing a cooldown
 allow_remove_command: false
 
+# enable toggling tripcode for messages.
+# If enabled, tripcodes can be toggle on/off using /toggletripcode.
+# Otherwise to add a tripcode, messages must always be prefixed with /t
+enable_tripcode_toggle: true
+
 # enable upvoting by reacting with thumbs-up to a message
 message_reaction_upvote: true
 
